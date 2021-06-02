@@ -1,0 +1,19 @@
+{
+  "name": "employee-tracker",
+  "version": "1.0.0",
+  "description": "A content Management System solution for managing a company's employees using node, inquirer and MySQL.",
+  "main": "employee.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/e-giftz/employee-tracker.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/e-giftz/employee-tracker/issues"
+  },
+  "homepage": "https://github.com/e-giftz/employee-tracker#readme"
+}
