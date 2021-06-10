@@ -14,7 +14,7 @@ VALUES ("Software Architect", 80000, 1),
 
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
 VALUES ("Jessica", "Bell", 1, 4),
-       ("Peter", "Dermian", 3),
+       ("Peter", "Dermian", 3, 1),
        ("Titus", "Wander", 2, 1),
        ("Joe", "Wander", 4, 3),
        ("Bob", "Saint", 5, 2);
