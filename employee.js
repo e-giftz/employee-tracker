@@ -26,6 +26,7 @@ const readEmployees = () => {
       'View All Employees',
       'View All Employees By Department',
       'View All Employees By Manager',
+      'View All Roles',
       'Add Employee',
       'Remove Employee',
       'Update Employee Role',
@@ -44,7 +45,11 @@ const readEmployees = () => {
         break;
 
       case 'View All Employees By Manager':
-        viewEmployeesManager();
+        viewEmployeesByManager();
+        break;
+
+      case 'View All Roles':
+        viewRoles();
         break;
 
       case 'Add Employee':
@@ -74,7 +79,7 @@ const readEmployees = () => {
 
 // Creating the Choices functions
 const viewEmployees = () => {
-  connection.query('SELECT id, first_name, last_name, role_id FROM employee', (err, res) => {
+  connection.query('SELECT * FROM employee', (err, res) => {
     if (err) throw err;
 
     let employeesArray = [] // creating array to hold user entries for employees
@@ -83,11 +88,11 @@ const viewEmployees = () => {
     readEmployees();
     
     console.log(res);
-    connection.end();
+    //connection.end();
   });
 }
 
-const viewDepartment = () => {
+const viewEmployeesDept = () => {
   connection.query('SELECT * FROM department', (err, res) => {
     if (err) throw err;
 
@@ -112,16 +117,24 @@ const viewRoles = () => {
 
 
 const addEmployee = () => {
+  let empRole = [];
   connection.query('SELECT * FROM role', (err, roles) => {
     if (err) console.log(err);
-    roles = roles.map((role) => {
-      return {
-        name: role.title,
-        value: role.id,
-      };
-    });
+    for (let i=0; i<roles.length; i++) {
+      let roleName = roles[i].title;
+      empRole.push(roleName);
+    };
+
+    
+    let empManager = [];
+    connection.query('SELECT * FROM employee', (err, managers) => {
+    if (err) console.log(err);
+    for (let i=0; i<managers.length; i++) {
+      let managerList = managers[i].id;
+      empManager.push(managerList);
+    }
     // Get information from the user to update databse
-    inquirer.prompt ([
+    inquirer.prompt([
       {
         name: 'firstName',
         type: 'input',
@@ -136,39 +149,117 @@ const addEmployee = () => {
         name: 'role',
         type: 'list',
         message: 'What is the new employee role...',
-        choices: roles,
+        choices: empRole,
       },
       {
-
         name: 'manager_Id',
         type: 'list',
-        message: 'Select manager id...',
-        choices: [1, 2, 3, 4]
+        message: 'Select department employee belongs to...',
+        choices: empManager,
 
       }
     ])
-    .then ((data) => {
-      console.log(data.role);
-      connection.query (
-        'INSERT INTO employee SET ?',
-        {
-          first_name: data.firstname,
-          last_name: data.lastname,
-          role_id: data.role,
-          manager_id: data.managerId
-        },
-        (err) => {
-          if (err) throw err;
-          console.log('Updated Employee Roster;');
-          viewAllEmployees();
-        }
-      )
+      .then((data) => {
+        let selectedRole;
+        for (let i=0; i<roles.length; i++){
+          if (roles[i].title === data.role){
+            selectedRole = roles[i];
+          }
+        };
+
+        let selectedManager;
+        for (let i=0; i<managers.length; i++){
+          if (managers[i].manager_id === data.manager_Id){
+            selectedManager= managers[i];
+          }
+        };
+
+        connection.query(
+          'INSERT INTO employee SET ?',
+          {
+            first_name: data.firstName,
+            last_name: data.lastName,
+            role_id: selectedRole.id,
+            manager_id: selectedManager.id
+          },
+          (err) => {
+            if (err) throw err;
+            console.log('Updated Employee Roster;');
+            readEmployees();
+          }
+        );
+      })
     })
-  })  
+  })
+}  
+
+const viewEmployeesByManager = () => {
+  const query = 'SELECT * FROM employee ORDER BY manager_id ASC';
+  connection.query(query, (err, res) => {
+      if (err) throw err;
+      console.table(res);
+  })
+
+  readEmployees();
 }
 
+const updateEmployeeRole = ()  => {
+  connection.query('SELECT * FROM employee', (err, employees) => {
+    if (err) console.log(err);
+    employees = employees.map((employee) => {
+      return {
+        name: `${employee.first_name} ${employee.last_name}`,
+        value: employee.id
+      };
+    })
+
+    connection.query('SELECT * FROM role', (err, roles) => {
+      if (err) console.log(err);
+      roles = roles.map((role) => {
+
+        return {
+          name: role.title,
+          value: role.id,
+        }
+      });
+      inquirer
+        .prompt ([
+          {
+            name: 'selectedEmployee',
+            type: 'list',
+            message: 'Select employee to update...',
+            choices: employees,
+          },
+          {
+            name: 'selectedRole',
+            type: 'list',
+            message: 'Select the new employee role',
+            choices: roles,
+          }
+        ])
+        .then((data) => {
+          connection.query('UPDATE employee SET ? WHERE ?',
+          [
+            {
+              role_id: data.selectedRole,
+            },
+            {
+              id: data.selectedEmployee,
+            },
+          ],
+          function (err) {
+            if (err) throw err;
+          }
+
+          );
+          console.log('Employee role updated successfully');
+          readEmployees();
+        });
+      });
+  })  
+};
 
 
- 
 
-    
+
+
