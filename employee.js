@@ -150,11 +150,12 @@ const addEmployee = () => {
       empRole.push(roleName);
     };
 
+    
     let empManager = [];
     connection.query('SELECT * FROM employee', (err, managers) => {
     if (err) console.log(err);
     for (let i=0; i<managers.length; i++) {
-      let managerList = managers[i].id;
+      let managerList = managers[i].manager_id;
       empManager.push(managerList);
     }
     // Get information from the user to update databse
@@ -171,14 +172,14 @@ const addEmployee = () => {
       },
       {
         name: 'role',
-        type: 'list',
+        type: 'rawlist',
         message: 'What is the new employee role...',
         choices: empRole,
       },
       {
         name: 'manager_Id',
-        type: 'list',
-        message: 'Select department employee belongs to...',
+        type: 'rawlist',
+        message: 'Select a manager which this employee belongs to...',
         choices: empManager,
 
       }
