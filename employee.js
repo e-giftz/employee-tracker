@@ -95,11 +95,8 @@ const viewEmployees = () => {
     let employeesArray = [] // creating array to hold user entries for employees
     res.forEach(employee => employeesArray.push(employee));
     console.table(employeesArray); // Log all results of the SELECT statement in a table
-    readEmployees();
-    
-    console.log(res);
-    //connection.end();
   });
+  readEmployees();
 }
 
 const viewRoles = () => {
@@ -109,8 +106,8 @@ const viewRoles = () => {
     let roleArray = [];
     res.forEach(role => roleArray.push(role));
     console.table(roleArray); // Log all results of the SELECT statement in a table
-    readEmployees();
   });
+  readEmployees();
 } 
 
 const viewDepartments = () => {
@@ -131,8 +128,8 @@ const viewEmployeesDept = () => {
     let departmentArray = []
     res.forEach(department => departmentArray.push(department));
     console.table(departmentArray); // Log all results of the SELECT statement in a table
-    readEmployees();
   });
+  readEmployees();
 }
 
 const viewEmployeesByManager = () => {
@@ -140,8 +137,7 @@ const viewEmployeesByManager = () => {
   connection.query(query, (err, res) => {
       if (err) throw err;
       console.table(res);
-  })
-
+  });
   readEmployees();
 }
 
@@ -154,7 +150,6 @@ const addEmployee = () => {
       empRole.push(roleName);
     };
 
-    
     let empManager = [];
     connection.query('SELECT * FROM employee', (err, managers) => {
     if (err) console.log(err);
@@ -263,8 +258,9 @@ const addNewRole = () => {
 
       );
       console.log('The new employee role has been added successfully!')
-      viewRoles();
+      
     });
+    viewRoles();
   });
 };
 
@@ -314,7 +310,7 @@ const updateEmployeeRole = ()  => {
       inquirer
         .prompt ([
           {
-            name: 'selectedEmployee',
+            name: 'employeeChoice',
             type: 'list',
             message: 'Select employee to update...',
             choices: employees,
@@ -333,7 +329,7 @@ const updateEmployeeRole = ()  => {
               role_id: data.selectedRole,
             },
             {
-              id: data.selectedEmployee,
+              id: data.employeeChoice,
             },
           ],
           function (err) {
@@ -348,10 +344,45 @@ const updateEmployeeRole = ()  => {
   })  
 };
 
-// connection.connect((err)  => {
-//   if (err) throw err;
-//   readEmployees();
-// })
+const removeEmployee = () => {
+  let employeeChoice = [];
+  connection.query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM employee", (err, delEmployee) => {
+    if (err) throw err;
+
+    for (let i=0; i<delEmployee.length; i++) {
+      let employeeList = delEmployee[i].name;
+      employeeChoice.push(employeeList);
+    };
+    inquirer  
+      .prompt([
+        {
+          name: 'employeeId',
+          type: 'rawlist',
+          message: 'Select employee to be deleted...',
+          choices: employeeChoice
+        },
+      ])
+      .then((data) => {
+        let selectedEmployee;
+        for(let i=0; i<delEmployee.length; i++) {
+          if (delEmployee[i].name === data.employeeId) {
+            selectedEmployee = delEmployee[i];
+          }
+        }
+        connection.query('DELETE FROM employee WHERE id=?',
+          [selectedEmployee.id],
+
+          function (err) {
+            if (err) throw err;
+            console.log('The selected  employee has been successfully deleted');
+            readEmployees();
+          }
+        ); 
+      })
+  });
+}
+
+
 
 
 
