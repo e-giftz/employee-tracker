@@ -24,13 +24,15 @@ const readEmployees = () => {
     message: "What would you like to do?",
     choices: [
       'View All Employees',
+      'View All Roles',
+      'View All Departments',
       'View All Employees By Department',
       'View All Employees By Manager',
-      'View All Roles',
-      'Add Employee',
+      'Add New Employee',
+      'Add New Role',
+      'Add New Department',
+      'Update Existing Employee Role',
       'Remove Employee',
-      'Update Employee Role',
-      'Update Employee Manager',
       'Exit',
     ],
   })
@@ -40,6 +42,14 @@ const readEmployees = () => {
         viewEmployees();
         break;
 
+      case 'View All Roles':
+        viewRoles();
+        break;
+
+      case 'View All Departments':
+        viewDepartments();
+        break;
+        
       case 'View All Employees By Department':
         viewEmployeesDept();
         break;
@@ -48,12 +58,16 @@ const readEmployees = () => {
         viewEmployeesByManager();
         break;
 
-      case 'View All Roles':
-        viewRoles();
+      case 'Add New Employee':
+        addEmployee();
         break;
 
-      case 'Add Employee':
-        addEmployee();
+      case 'Add New Role':
+        addNewRole();
+        break;
+
+      case 'Add New Department':
+        addNewDept();
         break;
 
       case 'Remove Employee':
@@ -62,10 +76,6 @@ const readEmployees = () => {
 
       case 'Update Employee Role':
         updateEmployeeRole();
-        break;
-
-      case 'Update Employee Manager':
-        updateEmployeeManager();
         break;
 
       default:
@@ -92,6 +102,28 @@ const viewEmployees = () => {
   });
 }
 
+const viewRoles = () => {
+  connection.query('SELECT * FROM role', (err, res) => {
+    if (err) throw err;
+
+    let roleArray = [];
+    res.forEach(role => roleArray.push(role));
+    console.table(roleArray); // Log all results of the SELECT statement in a table
+    readEmployees();
+  });
+} 
+
+const viewDepartments = () => {
+  connection.query('SELECT * FROM department', (err,res) => {
+    if (err) throw err;
+
+    let departmentArray = [];
+    res.forEach(department => departmentArray.push(department));
+    console.table(departmentArray);
+  })
+  readEmployees();
+}
+
 const viewEmployeesDept = () => {
   connection.query('SELECT * FROM department', (err, res) => {
     if (err) throw err;
@@ -101,20 +133,17 @@ const viewEmployeesDept = () => {
     console.table(departmentArray); // Log all results of the SELECT statement in a table
     readEmployees();
   });
-
 }
 
-const viewRoles = () => {
-  connection.query('SELECT * FROM role', (err, res) => {
-    if (err) throw err;
+const viewEmployeesByManager = () => {
+  const query = 'SELECT * FROM employee ORDER BY manager_id ASC';
+  connection.query(query, (err, res) => {
+      if (err) throw err;
+      console.table(res);
+  })
 
-    let roleArray = []
-    res.forEach(role => roleArray.push(role));
-    console.table(roleArray); // Log all results of the SELECT statement in a table
-    readEmployees();
-  });
-}  
-
+  readEmployees();
+}
 
 const addEmployee = () => {
   let empRole = [];
@@ -185,7 +214,7 @@ const addEmployee = () => {
           (err) => {
             if (err) throw err;
             console.log('Updated Employee Roster;');
-            readEmployees();
+            viewEmployees();
           }
         );
       })
@@ -193,14 +222,74 @@ const addEmployee = () => {
   })
 }  
 
-const viewEmployeesByManager = () => {
-  const query = 'SELECT * FROM employee ORDER BY manager_id ASC';
-  connection.query(query, (err, res) => {
-      if (err) throw err;
-      console.table(res);
-  })
+const addNewRole = () => {
+  connection.query('SELECT * FROM department', (err, depts) => {
+    if (err) console.log(err);
+    depts = depts.map((department) => {
+      return {
+        name: department.department_name,
+        value: department.id,
+      };
 
-  readEmployees();
+    });
+    inquirer.prompt([
+      {
+        name: 'newRole',
+        type: 'input',
+        message: 'Enter new role  title',
+      },
+      {
+        name: 'newRoleSalary',
+        type: 'input',
+        message: 'What would be the salary of the role',
+      },
+      {
+        name: 'department',
+        type: 'list',
+        message: 'What department would the new role be in?',
+        choices: depts,
+      },
+    ])
+    .then((data) => {
+      connection.query('INSERT INTO role SET ?',
+      {
+        title: data.newRole,
+        salary: data.newRoleSalary,
+        department_id: data.department,
+      },
+      function (err) {
+        if (err) throw err;
+      }
+
+      );
+      console.log('The new employee role has been added successfully!')
+      viewRoles();
+    });
+  });
+};
+
+const addNewDept = () => {
+  inquirer
+    .prompt([
+      {
+        name:'newDept',
+        type: 'input',
+        message: 'Enter name of new  department'
+      },
+    ])
+    .then((data) => {
+      connection.query('INSERT INTO department SET ?',
+      {
+        department_name: data.newDept,
+      },
+      function (err) {
+        if (err) throw err;
+        console.log('The new department, ' + data.newDept + ' has been added successfully')
+      }
+    );
+    viewDepartments();
+    })
+    
 }
 
 const updateEmployeeRole = ()  => {
@@ -253,11 +342,17 @@ const updateEmployeeRole = ()  => {
 
           );
           console.log('Employee role updated successfully');
-          readEmployees();
+          viewRoles();
         });
       });
   })  
 };
+
+// connection.connect((err)  => {
+//   if (err) throw err;
+//   readEmployees();
+// })
+
 
 
 
