@@ -29,9 +29,6 @@ Select the  ```Exit Menu``` to  quit.
 
 ## Links to application
 * URL of GitHub repository containing the code: https://github.com/e-giftz/employee-tracker
-* 
 
-## Screenshots  of the App
-![Note taker Landing Page](/demo_app/notetaker-landingpage.png)
-![Note taker Main Page](/demo_app/notetaker-notespage.png)
-![Note taker Write Display](/demo_app/notetaker-notesdetail.png)
+## Video  Demonstrating  the App's  Functionality
+![Emloyee Tracker demo](/assets/Employee_tracker.gif)
